@@ -782,33 +782,61 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({
         containerRef.current.removeChild(renderer.domElement);
       }
       
-      // Dispose materials/buffers to prevent WebGL memory leaks
-      textures.dayTexture.dispose();
-      textures.nightTexture.dispose();
-      cloudTexture.dispose();
-      starMat.dispose();
-      starsGeom.dispose();
-      dustField.geometry.dispose();
-      (dustField.material as THREE.PointsMaterial).dispose();
-      earthShaderMat.dispose();
-      earthMesh.geometry.dispose();
-      cloudMat.dispose();
-      cloudMesh.geometry.dispose();
-      coronaAura.geometry.dispose();
-      (coronaAura.material as THREE.MeshBasicMaterial).dispose();
-      sunVisualNode.geometry.dispose();
-      (sunVisualNode.material as THREE.MeshBasicMaterial).dispose();
+      // Dispose materials/buffers to prevent WebGL memory leaks (defensive checks)
+      try { if (textures && textures.dayTexture && typeof textures.dayTexture.dispose === 'function') textures.dayTexture.dispose(); } catch (e) {}
+      try { if (textures && textures.nightTexture && typeof textures.nightTexture.dispose === 'function') textures.nightTexture.dispose(); } catch (e) {}
+      try { if (cloudTexture && typeof cloudTexture.dispose === 'function') cloudTexture.dispose(); } catch (e) {}
+      try { if (starMat && typeof starMat.dispose === 'function') starMat.dispose(); } catch (e) {}
+      try { if (starsGeom && typeof starsGeom.dispose === 'function') starsGeom.dispose(); } catch (e) {}
+      try { if (dustField && dustField.geometry && typeof dustField.geometry.dispose === 'function') dustField.geometry.dispose(); } catch (e) {}
+      try { const dfm = (dustField && (dustField.material as any)); if (dfm && typeof dfm.dispose === 'function') dfm.dispose(); } catch (e) {}
+      try { if (earthShaderMat && typeof earthShaderMat.dispose === 'function') earthShaderMat.dispose(); } catch (e) {}
+      try { if (earthMesh && (earthMesh.geometry) && typeof (earthMesh.geometry as any).dispose === 'function') (earthMesh.geometry as any).dispose(); } catch (e) {}
+      try { if (cloudMat && typeof cloudMat.dispose === 'function') cloudMat.dispose(); } catch (e) {}
+      try { if (cloudMesh && (cloudMesh.geometry) && typeof (cloudMesh.geometry as any).dispose === 'function') (cloudMesh.geometry as any).dispose(); } catch (e) {}
+      try { if (coronaAura && (coronaAura.geometry) && typeof (coronaAura.geometry as any).dispose === 'function') (coronaAura.geometry as any).dispose(); } catch (e) {}
+      try { const caMat = (coronaAura && (coronaAura.material as any)); if (caMat && typeof caMat.dispose === 'function') caMat.dispose(); } catch (e) {}
+      try { if (sunVisualNode && (sunVisualNode.geometry) && typeof (sunVisualNode.geometry as any).dispose === 'function') (sunVisualNode.geometry as any).dispose(); } catch (e) {}
+      try { const svnMat = (sunVisualNode && (sunVisualNode.material as any)); if (svnMat && typeof svnMat.dispose === 'function') svnMat.dispose(); } catch (e) {}
       
       // Clean up hazards
       // eslint-disable-next-line react-hooks/exhaustive-deps
       meteorsRef.current.forEach(m => {
-        scene.remove(m.mesh);
-        m.mesh.geometry.dispose();
-        (m.mesh.material as THREE.Material).dispose();
-        world.removeBody(m.body);
+        try {
+          if (m && m.mesh) {
+            // Remove from scene if present
+            if (scene && typeof scene.remove === 'function') scene.remove(m.mesh);
+
+            // Safe dispose geometry if exists
+            const geom = (m.mesh as any).geometry;
+            if (geom && typeof geom.dispose === 'function') {
+              try { geom.dispose(); } catch (e) { /* swallow dispose errors */ }
+            }
+
+            // Safe dispose material(s)
+            const mat = (m.mesh as any).material;
+            if (mat) {
+              if (Array.isArray(mat)) {
+                mat.forEach((mm: any) => { if (mm && typeof mm.dispose === 'function') { try { mm.dispose(); } catch (e) {} } });
+              } else if (typeof mat.dispose === 'function') {
+                try { mat.dispose(); } catch (e) { /* ignore */ }
+              }
+            }
+          }
+
+          if (m && m.body && world && typeof world.removeBody === 'function') {
+            try { world.removeBody(m.body); } catch (e) { /* ignore */ }
+          }
+        } catch (err) {
+          // Defensive: guard against unexpected structures during hot reloads or partial cleanup
+          // eslint-disable-next-line no-console
+          console.warn('Error during meteor cleanup:', err);
+        }
       });
       
-      world.clearForces();
+      if (world && typeof world.clearForces === 'function') {
+        try { world.clearForces(); } catch (e) { /* ignore */ }
+      }
     };
   }, [gameState]); // Restart only when structural state transitions
 
