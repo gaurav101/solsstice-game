@@ -955,6 +955,27 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({
     }
   };
 
+  // Keep touch controls active while a player holds a direction, matching keyboard behaviour.
+  const handleTouchStart = (key: 'arrowup' | 'arrowdown' | 'arrowleft' | 'arrowright') => {
+    keysPressed.current[key] = true;
+    setControlsPressed({
+      w: !!keysPressed.current.w || !!keysPressed.current.arrowup,
+      s: !!keysPressed.current.s || !!keysPressed.current.arrowdown,
+      a: !!keysPressed.current.a || !!keysPressed.current.arrowleft,
+      d: !!keysPressed.current.d || !!keysPressed.current.arrowright,
+    });
+  };
+
+  const handleTouchEnd = (key: 'arrowup' | 'arrowdown' | 'arrowleft' | 'arrowright') => {
+    keysPressed.current[key] = false;
+    setControlsPressed({
+      w: !!keysPressed.current.w || !!keysPressed.current.arrowup,
+      s: !!keysPressed.current.s || !!keysPressed.current.arrowdown,
+      a: !!keysPressed.current.a || !!keysPressed.current.arrowleft,
+      d: !!keysPressed.current.d || !!keysPressed.current.arrowright,
+    });
+  };
+
   // -----------------------------------------------------
   // 4. Cosmic Events & Danger Solicitations (Meteors & Winds)
   // -----------------------------------------------------
@@ -1634,7 +1655,7 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({
       <div 
         id="canvas3d-container" 
         ref={containerRef} 
-        className="absolute top-0 right-0 bottom-0 left-20 sm:left-64 z-0 select-none outline-none overflow-hidden touch-none"
+        className="absolute top-0 right-0 bottom-0 left-16 lg:left-64 z-0 select-none outline-none overflow-hidden touch-none"
       />
 
       {/* Modern HUD overlays overlaying WebGL Container (Visible only when playing in cockpit) */}
@@ -1642,7 +1663,23 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({
         <div className="relative z-10 p-4 pointer-events-none w-full flex flex-col justify-between h-full">
           
           {/* Top telemetry panel bar */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full max-w-6xl mx-auto">
+          {/* Phone telemetry stays deliberately shallow so the planet remains visible. */}
+          <div className="sm:hidden grid grid-cols-3 gap-1.5 w-full max-w-md mx-auto pointer-events-auto">
+            <div className="rounded-lg border border-white/10 bg-[#040815]/80 px-2 py-1.5 text-center backdrop-blur-md">
+              <span className="block text-[8px] font-mono uppercase tracking-wide text-slate-400">Integrity</span>
+              <span className={`block text-xs font-mono font-black ${localStats.integrity < 40 ? 'text-rose-400' : 'text-emerald-400'}`}>{Math.round(localStats.integrity)}%</span>
+            </div>
+            <div className="rounded-lg border border-white/10 bg-[#040815]/80 px-2 py-1.5 text-center backdrop-blur-md">
+              <span className="block text-[8px] font-mono uppercase tracking-wide text-slate-400">Tilt</span>
+              <span className="block text-xs font-mono font-black text-sky-300">{localStats.currentTilt.toFixed(1)}°</span>
+            </div>
+            <div className="rounded-lg border border-white/10 bg-[#040815]/80 px-2 py-1.5 text-center backdrop-blur-md">
+              <span className="block text-[8px] font-mono uppercase tracking-wide text-slate-400">Spin</span>
+              <span className="block text-xs font-mono font-black text-sky-400">{localStats.rpm.toFixed(1)}</span>
+            </div>
+          </div>
+
+          <div className="hidden sm:grid grid-cols-3 gap-3 w-full max-w-6xl mx-auto">
             
             {/* Planetary Balance health meter */}
             <div className="p-3 sm:p-3.5 bg-[#040815]/70 border border-white/10 rounded-2xl backdrop-blur-md pointer-events-auto shadow-[0_0_20px_rgba(16,185,129,0.04)] w-full">
@@ -1743,14 +1780,14 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({
               ))}
             </div>
 
-            {/* On Screen Balancing Thrusters controller panel */}
-            <div className="p-5 bg-[#040815]/90 border border-white/10 rounded-2xl backdrop-blur-xl flex flex-col items-center gap-4 w-full max-w-sm pointer-events-auto self-center md:self-end shadow-[0_0_40px_rgba(0,0,0,0.6)]">
-              <span className="text-[9px] font-mono uppercase font-black tracking-[0.2em] text-orange-400 flex items-center gap-2">
+            {/* On Screen Balancing Thrusters controller panel + Mobile Arrow Pad */}
+            <div className="p-3 md:p-5 bg-[#040815]/90 border border-white/10 rounded-2xl backdrop-blur-xl flex flex-col items-center gap-2 md:gap-4 w-full max-w-sm pointer-events-auto self-center md:self-end shadow-[0_0_40px_rgba(0,0,0,0.6)]">
+              <span className="hidden md:flex text-[9px] font-mono uppercase font-black tracking-[0.2em] text-orange-400 items-center gap-2">
                 <RotateCcw className="w-3.5 h-3.5 animate-spin text-orange-400" />
                 Corrective Plasma Thrusters
               </span>
               
-              <div className="grid grid-cols-2 gap-2.5 w-full">
+              <div className="hidden md:grid grid-cols-2 gap-2.5 w-full">
                 {/* Pitch Adjust controls */}
                 <div className="flex flex-col gap-2">
                   <button
@@ -1789,12 +1826,69 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({
               </div>
 
               {/* Micro instructions */}
-              <div className="text-[9px] text-slate-500 text-center flex items-center gap-1.5 font-mono">
+              <div className="hidden md:flex text-[9px] text-slate-500 text-center items-center gap-1.5 font-mono">
                 <span>KEYBOARD MATRIX:</span>
                 <kbd className="bg-slate-950 px-1.5 py-0.5 rounded text-orange-400 font-bold border border-white/5 shadow-inner">W</kbd>
                 <kbd className="bg-slate-950 px-1.5 py-0.5 rounded text-orange-400 font-bold border border-white/5 shadow-inner">S</kbd>
                 <kbd className="bg-slate-950 px-1.5 py-0.5 rounded text-orange-400 font-bold border border-white/5 shadow-inner">A</kbd>
                 <kbd className="bg-slate-950 px-1.5 py-0.5 rounded text-orange-400 font-bold border border-white/5 shadow-inner">D</kbd>
+              </div>
+
+              {/* Mobile / Touch Arrow Pad (visible on small screens) */}
+              <div className="w-full md:hidden pointer-events-auto flex justify-center">
+                <div className="grid grid-cols-3 gap-2 items-center">
+                  <div />
+                  <button
+                    aria-label="up"
+                    onPointerDown={() => handleTouchStart('arrowup')}
+                    onPointerUp={() => handleTouchEnd('arrowup')}
+                    onPointerLeave={() => handleTouchEnd('arrowup')}
+                    onClick={() => applyCorrectiveImpulse('PITCH_DOWN')}
+                    className="w-14 h-12 rounded-xl bg-white/[0.04] border border-white/10 flex items-center justify-center text-slate-200 active:scale-[0.98]"
+                  >
+                    ↑
+                  </button>
+                  <div />
+
+                  <button
+                    aria-label="left"
+                    onPointerDown={() => handleTouchStart('arrowleft')}
+                    onPointerUp={() => handleTouchEnd('arrowleft')}
+                    onPointerLeave={() => handleTouchEnd('arrowleft')}
+                    onClick={() => applyCorrectiveImpulse('SPIN_CCW')}
+                    className="w-14 h-12 rounded-xl bg-white/[0.04] border border-white/10 flex items-center justify-center text-slate-200 active:scale-[0.98]"
+                  >
+                    ←
+                  </button>
+
+                  <div className="flex items-center justify-center">
+                    <div className="w-14 h-12 rounded-xl bg-transparent" />
+                  </div>
+
+                  <button
+                    aria-label="right"
+                    onPointerDown={() => handleTouchStart('arrowright')}
+                    onPointerUp={() => handleTouchEnd('arrowright')}
+                    onPointerLeave={() => handleTouchEnd('arrowright')}
+                    onClick={() => applyCorrectiveImpulse('SPIN_CW')}
+                    className="w-14 h-12 rounded-xl bg-white/[0.04] border border-white/10 flex items-center justify-center text-slate-200 active:scale-[0.98]"
+                  >
+                    →
+                  </button>
+
+                  <div />
+                  <button
+                    aria-label="down"
+                    onPointerDown={() => handleTouchStart('arrowdown')}
+                    onPointerUp={() => handleTouchEnd('arrowdown')}
+                    onPointerLeave={() => handleTouchEnd('arrowdown')}
+                    onClick={() => applyCorrectiveImpulse('PITCH_UP')}
+                    className="w-14 h-12 rounded-xl bg-white/[0.04] border border-white/10 flex items-center justify-center text-slate-200 active:scale-[0.98]"
+                  >
+                    ↓
+                  </button>
+                  <div />
+                </div>
               </div>
             </div>
 

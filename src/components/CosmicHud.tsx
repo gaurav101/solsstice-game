@@ -96,17 +96,17 @@ export const CosmicHud: React.FC<CosmicHudProps> = ({
     <div className="absolute inset-0 z-10 pointer-events-none flex flex-col justify-between">
       
       {/* ----------------- HUD Left Vertical Nav ----------------- */}
-      <div className="p-4 sm:p-6 h-full w-20 sm:w-64 flex flex-col justify-between items-center bg-gradient-to-r from-[#02050c]/95 to-transparent pointer-events-auto border-r border-white/[0.03] backdrop-blur-[2px]">
+      <div className="p-2 sm:p-3 lg:p-6 h-full w-16 lg:w-64 flex flex-col justify-between items-center bg-gradient-to-r from-[#02050c]/95 to-transparent pointer-events-auto border-r border-white/[0.03] backdrop-blur-[2px]">
 
         {/* Top: Solstice Title Logo (condensed for vertical layout) */}
         <div className="flex flex-col items-center gap-3 mt-2">
-          <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full border border-orange-500/30 bg-orange-950/20 shadow-[0_0_15px_rgba(249,115,22,0.25)] flex items-center justify-center relative group">
+          <div className="w-10 h-10 lg:w-14 lg:h-14 rounded-full border border-orange-500/30 bg-orange-950/20 shadow-[0_0_15px_rgba(249,115,22,0.25)] flex items-center justify-center relative group">
             <div className="absolute inset-0.5 rounded-full border border-orange-500/60 animate-spin" style={{ animationDuration: '10s' }} />
-            <div className="w-6 h-6 sm:w-7 sm:h-7 bg-gradient-to-tr from-orange-500 to-amber-400 rounded-full flex items-center justify-center shadow-[0_0_8px_#f97316]">
+            <div className="w-5 h-5 lg:w-7 lg:h-7 bg-gradient-to-tr from-orange-500 to-amber-400 rounded-full flex items-center justify-center shadow-[0_0_8px_#f97316]">
               <Sun className="w-4 h-4 text-slate-950" />
             </div>
           </div>
-          <div className="hidden sm:block text-center">
+          <div className="hidden lg:block text-center">
             <h1 className="text-sm font-black tracking-[0.15em] text-white leading-none font-sans uppercase">SOLSTICE</h1>
             <span className="text-[9px] font-mono tracking-[0.25em] text-orange-400 uppercase font-semibold block">JUNE CONTROL</span>
           </div>
@@ -132,7 +132,7 @@ export const CosmicHud: React.FC<CosmicHudProps> = ({
             title="June Solstice Science Guide"
           >
             <HelpCircle className="w-4 h-4 text-sky-400" />
-            <span className="hidden sm:inline font-mono tracking-wider text-[10px] uppercase">Science</span>
+            <span className="hidden lg:inline font-mono tracking-wider text-[10px] uppercase">Science</span>
           </button>
 
           <button
@@ -142,7 +142,7 @@ export const CosmicHud: React.FC<CosmicHudProps> = ({
             title={isMuted ? 'Unmute Synth' : 'Mute Synth'}
           >
             {isMuted ? <VolumeX className="w-4 h-4 text-rose-400" /> : <Volume2 className="w-4 h-4 text-emerald-400" />}
-            <span className="hidden sm:inline ml-2 text-[10px] font-mono uppercase">Sound</span>
+            <span className="hidden lg:inline ml-2 text-[10px] font-mono uppercase">Sound</span>
           </button>
 
           {gameState === GameState.PLAYING ? (
@@ -167,7 +167,7 @@ export const CosmicHud: React.FC<CosmicHudProps> = ({
       </div>
 
       {/* ----------------- Screens / Overlays ----------------- */}
-      <div className="absolute top-0 right-0 bottom-0 left-20 sm:left-64 flex items-center justify-center p-4 pointer-events-none">
+      <div className="absolute top-0 right-0 bottom-0 left-16 lg:left-64 flex items-center justify-center p-4 pointer-events-none">
 
         {/* --- START MENU SCREEN --- */}
         {gameState === GameState.START && (
